@@ -5,7 +5,7 @@ import base64
 import io
 
 
-def load_model(model_path=r'C:\Users\Christian\Desktop\Internship\mnist-digit-recognition-app\server\mnist_model30.keras'):  # Adjust the path if needed
+def load_model(model_path=r'C:\Users\Christian\Desktop\Internship\mnist-digit-recognition-app\server\mnist_model99.keras'):  # Adjust the path if needed
     """Loads the pre-trained MNIST model.
     """
     model = tf.keras.models.load_model(model_path)
@@ -14,18 +14,28 @@ def load_model(model_path=r'C:\Users\Christian\Desktop\Internship\mnist-digit-re
 
 def preprocess_image(base64_image):
     """
-    Decode and preprocess the base64-encoded image for prediction.
+    Decode and preprocess the base64-encoded image for prediction,
+    mirroring the training data preprocessing.
     """
     # Decode the base64 image
     image_data = base64.b64decode(base64_image.split(',')[1])
-    image = Image.open(io.BytesIO(image_data)).convert('L')  # Convert to grayscale
 
-    # Resize to 28x28 pixels (MNIST model input size)
+    # Open the image and convert to grayscale ('L' mode for Pillow)
+    image = Image.open(io.BytesIO(image_data)).convert('L')
+
+    # Resize to 28x28 pixels
     image = image.resize((28, 28))
 
-    # Convert to numpy array and normalize pixel values
-    image_array = np.array(image) / 255.0  # Normalize to 0-1 range
-    return image_array.reshape(1, 28, 28, 1)  # Add batch dimension
+    # Invert the image (as MNIST digits are black on white background)
+    image = Image.eval(image, lambda x: 255 - x)  # Invert using Pillow's Image.eval
+
+    # Convert to NumPy array and normalize pixel values
+    image_array = np.array(image, dtype=np.float32) / 255.0
+
+    # Reshape to (1, 28, 28, 1) to match the model's input shape
+    image_array = image_array.reshape(1, 28, 28, 1)
+
+    return image_array
 
 
 def predict_digit(base64_image, model):
