@@ -38,7 +38,7 @@ const App: React.FC<AppProps> = () => {
         const imgData = await canvasRef.current.exportImage("png");
         setDrawnDigit(imgData);
 
-        const response = await fetch("https://2a5e-41-215-171-157.ngrok-free.app/predict", {
+        const response = await fetch("https://10ee-41-215-171-216.ngrok-free.app/predict", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ image: imgData }),
