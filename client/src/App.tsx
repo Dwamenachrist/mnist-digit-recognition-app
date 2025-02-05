@@ -12,24 +12,40 @@ const App: React.FC = () => {
   const [canvasColor, setCanvasColor] = useState<string>("#000000");
   const [loading, setLoading] = useState<boolean>(false);
   const [predictedNumber, setPredictedNumber] = useState<string>("?");
-  const [aiConfidence, setAiConfidence] = useState<number>(75);
+  const [aiConfidence, setAiConfidence] = useState<number>(0);
   const [strokeWidth, setStrokeWidth] = useState<number>(10);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [drawnImage, setDrawnImage] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState("three_layer_model");
+
 
   const predictNumber = async (image?: string): Promise<void> => {
     setLoading(true);
     setPredictedNumber("?");
+
     try {
       let imgData = image || null;
 
       if (!imgData && canvasRef.current) {
-        imgData = await canvasRef.current.exportImage("png");
+        imgData = await canvasRef.current.exportImage("png"); // Assuming this method exists and works
         setDrawnImage(imgData);
       }
 
       if (imgData) {
-        const response = await fetch("http://127.0.0.1:5000/predict", {
+        let apiUrl;
+
+        if (selectedModel === 'three_layer_model' || selectedModel === 'five_layer_model') {
+          apiUrl = 'https://mnist-final-project.onrender.com';
+        } else if (selectedModel === 'six_layer_model') {
+          apiUrl = 'https://7c21-154-161-34-11.ngrok-free.app';
+        } else {
+          console.error("Invalid model selected.");
+          setPredictedNumber("Error"); // Set an error state
+          setLoading(false); // Important: Stop loading indicator
+          return; // Stop execution
+        }
+
+        const response = await fetch(`${apiUrl}/${selectedModel}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ image: imgData }),
@@ -40,17 +56,18 @@ const App: React.FC = () => {
           setPredictedNumber(data.prediction.toString());
           setAiConfidence(Math.round(data.confidence * 100));
         } else {
-          console.error("Prediction request failed:", response.statusText);
-          setPredictedNumber("Error");
+          console.error("Prediction request failed:", response.status, response.statusText, await response.text()); // Log full error details
+          setPredictedNumber("Error"); // Set an error state for the user
         }
       }
     } catch (error) {
       console.error("Error during prediction:", error);
-      setPredictedNumber("Error");
+      setPredictedNumber("Error"); // Set an error state
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -91,91 +108,103 @@ const App: React.FC = () => {
           <div className="flex gap-3 flex-wrap justify-center">
             <div className="flex items-center">
               <label
-                htmlFor="stroke-color"
-                className="text-neutral-950 mr-2 text-sm sm:text-base"
+                  htmlFor="stroke-color"
+                  className="text-neutral-950 mr-2 text-sm sm:text-base"
               >
                 Stroke Color
               </label>
               <input
-                id="stroke-color"
-                type="color"
-                value={strokeColor}
-                onChange={(e) => setStrokeColor(e.target.value)}
-                className="w-[40px] h-[40px] rounded-md border border-neutral-300"
+                  id="stroke-color"
+                  type="color"
+                  value={strokeColor}
+                  onChange={(e) => setStrokeColor(e.target.value)}
+                  className="w-[40px] h-[40px] rounded-md border border-neutral-300"
               />
             </div>
             <div className="flex items-center">
               <label
-                htmlFor="canvas-color"
-                className="text-neutral-950 mr-2 text-sm sm:text-base"
+                  htmlFor="canvas-color"
+                  className="text-neutral-950 mr-2 text-sm sm:text-base"
               >
                 Canvas Color
               </label>
               <input
-                id="canvas-color"
-                type="color"
-                value={canvasColor}
-                onChange={(e) => setCanvasColor(e.target.value)}
-                className="w-[40px] h-[40px] rounded-md border border-neutral-300"
+                  id="canvas-color"
+                  type="color"
+                  value={canvasColor}
+                  onChange={(e) => setCanvasColor(e.target.value)}
+                  className="w-[40px] h-[40px] rounded-md border border-neutral-300"
               />
             </div>
           </div>
           <div className="flex items-center gap-3">
             <label
-              htmlFor="stroke-width"
-              className="text-neutral-950 text-sm sm:text-base"
+                htmlFor="stroke-width"
+                className="text-neutral-950 text-sm sm:text-base"
             >
               Stroke Width
             </label>
             <input
-              id="stroke-width"
-              type="range"
-              min="1"
-              max="10"
-              value={strokeWidth}
-              onChange={(e) => setStrokeWidth(Number(e.target.value))}
-              className="w-[150px]"
+                id="stroke-width"
+                type="range"
+                min="1"
+                max="10"
+                value={strokeWidth}
+                onChange={(e) => setStrokeWidth(Number(e.target.value))}
+                className="w-[150px]"
             />
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => {
-                canvasRef.current?.clearCanvas();
-                setDrawnImage(null);
-              }}
-              className="bg-red-500 text-white rounded-md py-2 px-4 text-sm sm:text-base"
+                onClick={() => {
+                  canvasRef.current?.clearCanvas();
+                  setDrawnImage(null);
+                }}
+                className="bg-red-500 text-white rounded-md py-2 px-4 text-sm sm:text-base"
             >
               Clear
             </button>
             <button
-              onClick={() => canvasRef.current?.undo()}
-              className="bg-gray-500 text-white rounded-md py-2 px-4 text-sm sm:text-base"
+                onClick={() => canvasRef.current?.undo()}
+                className="bg-gray-500 text-white rounded-md py-2 px-4 text-sm sm:text-base"
             >
               Undo
             </button>
             <button
-              onClick={() => canvasRef.current?.redo()}
-              className="bg-blue-500 text-white rounded-md py-2 px-4 text-sm sm:text-base"
+                onClick={() => canvasRef.current?.redo()}
+                className="bg-blue-500 text-white rounded-md py-2 px-4 text-sm sm:text-base"
             >
               Redo
             </button>
             <button
-              onClick={() => {
-                predictNumber();
-              }}
-              className="bg-indigo-950 text-white rounded-md py-2 px-4 text-sm sm:text-base"
+                onClick={() => {
+                  predictNumber();
+                }}
+                className="bg-indigo-950 text-white rounded-md py-2 px-4 text-sm sm:text-base"
             >
               Predict
             </button>
           </div>
           <div>
             <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="block text-sm text-neutral-950 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600"
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="block text-sm text-neutral-950 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary-500 file:text-white hover:file:bg-primary-600"
             />
           </div>
+          <label className="text-neutral-950 text-sm sm:text-base">
+            Select Model:
+          </label>
+          <select
+              value={selectedModel}
+              onChange={(e) => setSelectedModel(e.target.value)}
+              className="border border-neutral-300 rounded-md px-2 py-1"
+          >
+            <option value="three_layer_model">3-Layer Model</option>
+            <option value="five_layer_model">5-Layer Model</option>
+            <option value="six_layer_model">6-Layer Model</option>
+          </select>
         </div>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
@@ -184,7 +213,7 @@ const App: React.FC = () => {
             Predicted Number:
           </h2>
           {loading ? (
-            <span className="text-neutral-950 text-lg">Loading...</span>
+              <span className="text-neutral-950 text-lg">Loading...</span>
           ) : (
             <span className="text-neutral-950 text-2xl">{predictedNumber}</span>
           )}
