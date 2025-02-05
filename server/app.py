@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.DEBUG)
 model = load_model()
 
 
-@app.route('/predict', methods=['POST'])
+@app.route('/six_layer_model', methods=['POST'])
 def predict():
     try:
         # Get image data from the request
