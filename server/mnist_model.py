@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from PIL import Image, ImageOps
+from PIL import Image
 import base64
 import io
 
