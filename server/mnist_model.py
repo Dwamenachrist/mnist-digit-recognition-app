@@ -5,7 +5,7 @@ import base64
 import io
 
 
-def load_model(model_path=r'\mnist-digit-recognition-app\server\mnist_model_final.keras'):
+def load_model(model_path='\mnist-digit-recognition-app\server\mnist_model_final.keras'):
     """Loads the pre-trained MNIST model.
     """
     try:
