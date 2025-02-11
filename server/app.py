@@ -2,9 +2,11 @@ from flask import Flask, request, jsonify
 from mnist_model import load_model, predict_digit
 import logging
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)
+
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -12,8 +14,15 @@ logging.basicConfig(level=logging.DEBUG)
 model = load_model()
 
 
+@app.route('/')
+def home():
+    """Root route to confirm the API is running."""
+    return jsonify({"message": "Flask MNIST Model API is running!"}), 200
+
+
 @app.route('/six_layer_model', methods=['POST'])
 def predict():
+    """Handles digit prediction requests."""
     try:
         # Get image data from the request
         data = request.json
@@ -34,4 +43,6 @@ def predict():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Render assigns a dynamic PORT, so we use it if available
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host='0.0.0.0', port=port, debug=False)
