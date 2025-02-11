@@ -31,7 +31,7 @@ const App: React.FC = () => {
         setDrawnImage(imgData);
       }
 
-      if (imgData) {
+      // if (imgData) {
         let apiUrl;
 
         if (selectedModel === 'three_layer_model' || selectedModel === 'five_layer_model') {
