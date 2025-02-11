@@ -31,13 +31,13 @@ const App: React.FC = () => {
         setDrawnImage(imgData);
       }
 
-      // if (imgData) {
+      if (imgData) {
         let apiUrl;
 
         if (selectedModel === 'three_layer_model' || selectedModel === 'five_layer_model') {
           apiUrl = 'https://mnist-final-project.onrender.com';
         } else if (selectedModel === 'six_layer_model') {
-          apiUrl = 'https://mnist-backend.onrender.com';
+          apiUrl = 'https://mnist-digit-recognition-app.onrender.com';
         } else {
           console.error("Invalid model selected.");
           setPredictedNumber("Error"); // Set an error state
